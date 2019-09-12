@@ -1,31 +1,37 @@
 <template>
   <div class="easy-date">
-    <div class="easy-date-header">8月</div>
+    <div class="easy-date-header">{{activeMonth}}月</div>
     <div class="body-content-wrap">
-      <div class="easy-date-body-wrap">
-        <table class="easy-date-body">
-          <thead>
-            <tr>
-              <th>一</th>
-              <th>二</th>
-              <th>三</th>
-              <th>四</th>
-              <th>五</th>
-              <th>六</th>
-              <th>日</th>
-            </tr>
-          </thead>
-          <tbody @click="dayClick($event)">
-            <tr v-for="(item,index) in daysArray" :key="index">
-              <td v-for="(dayItem, j) in item" :key="j" :class="getDayClasses(dayItem)">
-                <div class="day-wrap" :data-oday="JSON.stringify(dayItem)">
-                  <div class="day">{{dayItem.day.date()}}</div>
-                  <div class="day-content" v-if="dayItem.isRest">休</div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="swiper-container">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide" v-for="(item,index) in monthArr" :key="index">
+            <div class="easy-date-body-wrap">
+              <table class="easy-date-body">
+                <thead>
+                  <tr>
+                    <th>一</th>
+                    <th>二</th>
+                    <th>三</th>
+                    <th>四</th>
+                    <th>五</th>
+                    <th>六</th>
+                    <th>日</th>
+                  </tr>
+                </thead>
+                <tbody @click="dayClick($event)">
+                  <tr v-for="(item,index) in daysArray" :key="index">
+                    <td v-for="(dayItem, j) in item" :key="j" :class="getDayClasses(dayItem)">
+                      <div class="day-wrap" :data-oday="JSON.stringify(dayItem)">
+                        <div class="day">{{dayItem.day.date()}}</div>
+                        <div class="day-content" v-if="dayItem.isRest">休</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="easy-date-content"></div>
     </div>
@@ -33,8 +39,14 @@
 </template>
 
 <script>
+import "swiper/dist/css/swiper.css";
+import Swiper from "swiper";
 import moment from "moment";
 const currentDate = moment();
+const currentMonth = currentDate.month() + 1;
+const initMonthArray = [currentMonth - 1, currentMonth, currentMonth + 1];
+
+let flag = false;
 export default {
   name: "easy-date",
   data() {
@@ -43,15 +55,19 @@ export default {
       currentMonth: currentDate.format("YYYY-MM"),
       startDateOfMonth: null,
       endDateOfMonth: null,
-      daysArray: []
+      daysArray: [],
+      monthArr: initMonthArray,
+      activeDate: currentDate
     };
   },
   mounted() {
-    this.renderDate();
+    this.swiperInit();
+    // this.getNextMonth(this.currentDate)
   },
   methods: {
     // 初始化当前月份的开始日期和结束日期
     initStartEnd: function() {
+      console.log(this.currentMonth);
       // 当月1号
       var currMonth = moment(this.currentMonth, "YYYY-MM"),
         // 当月1号是周几 the ISO day of the week with 1 being Monday and 7 being Sunday.
@@ -101,7 +117,7 @@ export default {
           this.daysArray[i].push(oDay);
         }
       }
-      console.log(this.daysArray);
+      // console.log(this.daysArray);
     },
     clearDays() {
       this.daysArray = [];
@@ -121,7 +137,7 @@ export default {
     },
     dayClick(e) {
       const el = this.findParents(e.target);
-      console.log(e.dataset.oDay)
+      console.log(e.dataset.oDay);
     },
     findParents(el) {
       while (
@@ -135,11 +151,68 @@ export default {
         el = el.parentNode;
       }
       return null;
+    },
+    getPreMonth(currMonth) {
+      const preMonth = currMonth.subtract(1, "months");
+      console.log(preMonth.format("YYYY-MM-DD"));
+      return preMonth;
+    },
+    getNextMonth(currMonth) {
+      const nextMonth = currMonth.add(1, "months");
+      console.log(nextMonth.format("YYYY-MM-DD"));
+      return nextMonth;
+    },
+    swiperInit() {
+      const self = this;
+      const mySwiper = new Swiper(".swiper-container", {
+        // slides: true,
+        observer: true,
+        on: {
+          slideNextTransitionStart: function() {
+            self.currentMonth = moment(self.currentMonth, "YYYY-MM")
+              .add(1, "month")
+              .format("YYYY-MM");
+
+            if (!flag) {
+              console.log("开始切换");
+              // mySwiper.virtual.appendSlide("My Slide");
+              // mySwiper.virtual.update();
+              self.monthArr.push(1);
+              mySwiper.update();
+              flag = true;
+            }
+          },
+          slidePrevTransitionStart: function() {
+             self.currentMonth = moment(self.currentMonth, "YYYY-MM")
+              .subtract(1, "month")
+              .format("YYYY-MM");
+
+          }
+        }
+      });
+    }
+  },
+  computed: {
+    activeMonth() {
+      return this.activeDate.month() + 1;
+    }
+  },
+  watch: {
+    currentMonth: {
+      handler(val, newval) {
+        this.renderDate();
+      },
+      immediate: true
     }
   }
 };
 </script>
-
+<style lang="scss">
+.swiper-container {
+  width: 100%;
+  height: 100%;
+}
+</style>
 <style lang="scss" scoped>
 .easy-date {
   font-size: px2rem(28);
