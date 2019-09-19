@@ -30,6 +30,7 @@
                 </tbody>
               </table>
             </div>
+            <!-- <calendar></calendar> -->
           </div>
         </div>
       </div>
@@ -42,6 +43,7 @@
 import "swiper/dist/css/swiper.css";
 import Swiper from "swiper";
 import moment from "moment";
+import calendar from './calendar.vue';
 const currentDate = moment();
 const currentMonth = currentDate.month() + 1;
 const initMonthArray = [currentMonth - 1, currentMonth, currentMonth + 1];
@@ -49,6 +51,9 @@ const initMonthArray = [currentMonth - 1, currentMonth, currentMonth + 1];
 let flag = false;
 export default {
   name: "easy-date",
+  components: {
+    calendar
+  },
   data() {
     return {
       currentDate: currentDate,
