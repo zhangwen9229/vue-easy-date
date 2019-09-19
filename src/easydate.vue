@@ -142,7 +142,7 @@ export default {
     },
     dayClick(e) {
       const el = this.findParents(e.target);
-      console.log(e.dataset.oDay);
+      console.log(el.dataset.oday);
     },
     findParents(el) {
       while (
